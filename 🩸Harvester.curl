@@ -1,0 +1,6 @@
+curl -s -X POST https://victim-site.com/login \
+  -H "User-Agent: Mozilla/5.0" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=admin&password=dracul4" \
+  -c cookies.txt \
+  -o response.html
