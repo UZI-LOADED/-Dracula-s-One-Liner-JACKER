@@ -1,0 +1,32 @@
+🦇                      
+curl -s -X POST https://catalog.corp.com/auth \
+  -d "user=distributor&pass=batman123" \
+  -c auth.cookie
+
+
+
+  -----------------------------------------------------------------------------------------------
+
+
+   Catalog Scraper with Login
+Phase 1: Log in to a supplier catalog system.
+
+bash
+Copy
+Edit
+curl -s -X POST https://catalog.corp.com/auth \
+  -d "user=distributor&pass=batman123" \
+  -c auth.cookie
+Phase 2: Access protected product data:
+
+bash
+Copy
+Edit
+curl -s https://catalog.corp.com/products?page=1 \
+  -b auth.cookie -o page1.html
+Phase 3: Use grep, awk, or htmlq (a beautiful HTML parser) to extract fields.
+
+bash
+Copy
+Edit
+cat page1.html | grep -oP 'SKU:\s+\K\w+'
