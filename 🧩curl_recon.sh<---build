@@ -1,0 +1,199 @@
+🩸 Step-by-Step Manual Setup
+⚰️ 1. Folder Structure
+Create this structure:
+
+bash
+Copy
+Edit
+Dracula_CurlReconToolkit/
+├── data/
+├── scripts/
+│   └── curl_recon.sh
+├── dashboard/
+│   └── app.py
+└── README.txt
+⚙️ 2. curl_recon.sh – Dracula's Recon Script
+📜 Save this in scripts/curl_recon.sh and make it executable:
+
+bash
+Copy
+Edit
+#!/bin/bash
+# Dracula's Curl Recon Script
+
+TARGET=$1
+OUTDIR="../data"
+mkdir -p $OUTDIR
+
+echo "[🧛] Scanning $TARGET..."
+curl -s -D $OUTDIR/headers.txt -o $OUTDIR/body.html $TARGET
+
+echo "[🕵️] Extracting server headers..."
+grep -i 'Server:' $OUTDIR/headers.txt
+
+echo "[🔍] Searching for secrets in body..."
+grep -iE "api[_-]?key|secret|token|password" $OUTDIR/body.html > $OUTDIR/findings.txt
+
+echo "[📁] Recon complete. View ../data for output."
+bash
+Copy
+Edit
+chmod +x scripts/curl_recon.sh
+💻 3. app.py – Flask Dashboard
+📜 Save this in dashboard/app.py:
+
+python
+Copy
+Edit
+from flask import Flask, render_template_string
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    try:
+        with open('../data/findings.txt') as f:
+            findings = f.read().splitlines()
+    except:
+        findings = ['No findings yet. Run recon first.']
+    return render_template_string("""
+    <html>
+    <head><title>🧛 Dracula Recon Dashboard</title></head>
+    <body style='background:#111; color:#eee; font-family:monospace'>
+        <h1>🩸 Dracula Recon Dashboard</h1>
+        <h2>Findings:</h2>
+        <ul>
+        {% for item in findings %}
+            <li>{{ item }}</li>
+        {% endfor %}
+        </ul>
+    </body>
+    </html>
+    """, findings=findings)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+📘 4. README.txt
+Save this at the root:
+
+shell
+Copy
+Edit
+🧛 Dracula Curl Recon Toolkit
+
+Instructions:
+
+1. Run Recon:
+$ ./scripts/curl_recon.sh https://target-site.com
+
+2. Start Dashboard:
+$ cd dashboard
+$ python3 app.py
+
+Then open your browser at:
+http://localhost:5000
+
+🩸 All harvested info will appear in a Dracula-themed dashboard.
+🧪 5. Run the Toolkit
+bash
+Copy
+Edit
+./scripts/curl_recon.sh https://example.com
+cd dashboard
+python3 app.py
+Then visit: http://localhost:5000 to view the dark web harvest.
+
+
+-----------------------------------------------------------------------------------------------
+
+🧩 Dracula Enhancements (Modular Add-ons)
+1. 📬 Email Alerts for Sensitive Findings
+Use case: Instantly receive an alert if the recon finds tokens, API keys, or passwords.
+
+🔧 How to Add:
+Add this to the bottom of curl_recon.sh:
+
+bash
+Copy
+Edit
+# Optional Email Alert (needs ssmtp or mailutils setup)
+ALERT_KEYWORDS=$(cat $OUTDIR/findings.txt | grep -Ei "api[_-]?key|secret|token|password")
+if [ ! -z "$ALERT_KEYWORDS" ]; then
+    echo "Sensitive info found at $TARGET:" > $OUTDIR/email_alert.txt
+    echo "$ALERT_KEYWORDS" >> $OUTDIR/email_alert.txt
+    mail -s "[🧛 Dracula Alert] Findings at $TARGET" your_email@example.com < $OUTDIR/email_alert.txt
+fi
+⚠️ Install Mail Support:
+
+bash
+Copy
+Edit
+sudo apt install mailutils -y
+2. 🧊 Archive Old Scans Automatically
+Use case: Every scan is saved, timestamped, and stored.
+
+🔧 Add to curl_recon.sh before final echo:
+bash
+Copy
+Edit
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+mkdir -p $OUTDIR/archive/$TIMESTAMP
+cp $OUTDIR/headers.txt $OUTDIR/archive/$TIMESTAMP/
+cp $OUTDIR/body.html $OUTDIR/archive/$TIMESTAMP/
+cp $OUTDIR/findings.txt $OUTDIR/archive/$TIMESTAMP/
+3. 🧠 jq JSON Detection for API Recon
+Use case: Finds exposed API endpoints returning JSON.
+
+🔧 Add to curl_recon.sh:
+bash
+Copy
+Edit
+# Look for JSON data
+if jq -e . $OUTDIR/body.html >/dev/null 2>&1; then
+    echo "[🧬] JSON API detected!"
+    echo "Likely JSON data found" >> $OUTDIR/findings.txt
+fi
+⚠️ Install with: sudo apt install jq -y
+
+4. 📦 Dockerized Setup (Portable Vampire)
+Dockerfile (save in root of the project):
+
+Dockerfile
+Copy
+Edit
+FROM python:3.10-slim
+WORKDIR /recon
+COPY . .
+RUN apt update && apt install -y curl jq mailutils
+RUN pip install flask
+CMD ["bash", "./scripts/curl_recon.sh", "https://example.com"]
+To build & run:
+
+bash
+Copy
+Edit
+docker build -t dracula-recon .
+docker run -p 5000:5000 dracula-recon
+5. 🎛️ Dashboard Upgrade: Export to CSV
+Update app.py:
+
+python
+Copy
+Edit
+@app.route('/export')
+def export():
+    with open('../data/findings.txt') as f:
+        findings = f.read().splitlines()
+    csv_data = "\\n".join([f'"{line}"' for line in findings])
+    return csv_data, 200, {'Content-Type': 'text/csv'}
+Then visit: http://localhost:5000/export to download .csv
+
+🧪 Bonus: One-liner Installer (for Kali or VPS)
+Here’s your Dracula Setup Summoning Spell:
+
+bash
+Copy
+Edit
+curl -sSL https://yourdomain.com/dracula_install.sh | bash
+
+
+
